@@ -113,7 +113,7 @@ def build_env(args, render=False):
             env.seed(seed)
         else:
             frame_stack_size = 4
-            env = VecFrameStack(make_atari_env(env_id, nenv, seed), frame_stack_size)
+            env = VecFrameStack(make_atari_env(env_id, nenv, seed, skip=args.skip), frame_stack_size)
 
     elif env_type == 'retro':
         import retro
@@ -223,9 +223,10 @@ def main():
         obs = env.reset()
         while True:
             actions = model.step(obs)[0]
-            obs, _, done, _  = env.step(actions)
+            obs, _, done, info  = env.step(actions)
             env.render()
             if done:
+                print(info)
                 obs = env.reset()
             
 

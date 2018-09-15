@@ -16,7 +16,7 @@ from baselines.common import set_global_seeds
 from baselines.common.atari_wrappers import make_atari, wrap_deepmind
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 
-def make_atari_env(env_id, num_env, seed, wrapper_kwargs=None, start_index=0):
+def make_atari_env(env_id, num_env, seed, skip=None, wrapper_kwargs=None, start_index=0):
     """
     Create a wrapped, monitored SubprocVecEnv for Atari.
     """
@@ -24,7 +24,7 @@ def make_atari_env(env_id, num_env, seed, wrapper_kwargs=None, start_index=0):
     mpi_rank = MPI.COMM_WORLD.Get_rank() if MPI else 0
     def make_env(rank): # pylint: disable=C0111
         def _thunk():
-            env = make_atari(env_id)
+            env = make_atari(env_id, skip=skip)
             env.seed(seed + 10000*mpi_rank + rank if seed is not None else None)
             env = Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(mpi_rank) + '.' + str(rank)))
             return wrap_deepmind(env, **wrapper_kwargs)
@@ -95,6 +95,7 @@ def common_arg_parser():
     parser.add_argument('--reward_scale', help='Reward scale factor. Default: 1.0', default=1.0, type=float)
     parser.add_argument('--save_path', help='Path to save trained model to', default=None, type=str)
     parser.add_argument('--play', default=False, action='store_true')
+    parser.add_argument('--skip', type=int, help='frame skip')
     return parser
 
 def robotics_arg_parser():
